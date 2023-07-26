@@ -13,7 +13,7 @@ export class trying extends Component {
 
 
 
-    public speed = 100; // the speed of the ball
+    public speed = 30; // the speed of the ball
 
 
 
