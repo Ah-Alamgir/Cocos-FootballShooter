@@ -1,19 +1,38 @@
-import { _decorator, Animation, CircleCollider2D, Collider, Collider2D, Component,  Contact2DType,  EventMouse,  EventTouch,  Input, input, IPhysics2DContact, Node,  Quat, RigidBody2D, UITransform, v2, v3,  Vec3, view, View } from 'cc';
+import { _decorator, Animation, Button, CircleCollider2D, Collider, Collider2D, Component,  Contact2DType,  EventMouse,  EventTouch,  Input, input, IPhysics2DContact, Label, Node,  Quat, RigidBody2D, UITransform, v2, v3,  Vec3, view, View } from 'cc';
 const { ccclass, property } = _decorator;
 
+
+
+let totalGoals = 0;
 @ccclass('trying')
 export class trying extends Component {
 
-    // attach this script to ball node which you want to shoot
+    // attach this script to Canvas node which you want to shoot
     
     @property(Node)
+    // add a ball sprite as a node in your scene
     public ball: Node = null;
+    
     @property(Node)
+    //add a goal kepper sprite in your scene
     public player:Node = null;
 
 
-
     public speed = 30; // the speed of the ball
+    //also add boundary to your game so that the ball don't fly away outside the scene
+    
+    @property(Node)
+    public score:Node = null;
+
+    
+    @property(Node)
+    public PopBg:Node = null;
+
+    @property(Node)
+    public PopScore:Node = null;
+
+    @property(Node)
+    public playBtn:Node = null;
 
 
 
@@ -23,28 +42,37 @@ export class trying extends Component {
         input.on(Input.EventType.MOUSE_DOWN,this.getangle, this );
         input.on(Input.EventType.TOUCH_END , this.getTouchAngle, this)
         
-
         this.ball.getComponent(Collider2D).on(Contact2DType.BEGIN_CONTACT, this.onColide, this )
-
+        
+        this.playBtn.on(Button.EventType.CLICK, this.restart, this)
     }
+
+
 
 //set logic for goal and not goal
     onColide(selfColider: Collider2D, otherColider: Collider2D, contant: IPhysics2DContact | null){
-       if(otherColider.node.name == 'player'){
-        this.ball.getComponent(RigidBody2D).sleep();
-        console.log('not goal');
-       }else if(otherColider.node.name == 'goal'){
-            console.log('goal');
-            
-            this.resetBall();
+       if(otherColider.node.name == 'top'){
+            this.ball.getComponent(RigidBody2D).enabledContactListener = false;
+            this.updateScore()
+       }else if(otherColider.node.name == 'player'){
+        this.ball.getComponent(RigidBody2D).sleep()
+        this.PopBg.active = true;
+        this.PopScore.getComponent(Label).string = totalGoals.toString()
+        this.PopBg.getComponent(Animation).play()
        }
     }
 
 
 
-
-
-
+    
+    
+    updateScore(){
+        totalGoals = totalGoals + 1;
+        this.score.getComponent(Label).string = totalGoals.toString();
+        this.score.getComponent(Animation).play()
+        setTimeout(this.resetBall, 500)
+        
+    }
 
 
 
@@ -96,6 +124,7 @@ export class trying extends Component {
 // Reset the ball to its position and set rotation to 0
 resetBall(){
     if( this.canReset){
+        this.ball.getComponent(RigidBody2D).enabledContactListener = true;
         this.ball.setRotation(new Quat(0,0,0,0))
         this.ball.setPosition(0,-250)
         this.ball.getComponent(RigidBody2D).sleep(); 
@@ -104,7 +133,15 @@ resetBall(){
       
 }
 
-
+restart(){
+    this.ball.setRotation(new Quat(0,0,0,0))
+    this.ball.setPosition(0,-250)
+    this.ball.getComponent(RigidBody2D).sleep(); 
+    this.canReset = false;
+    this.score.getComponent(Label).string = '00';
+    totalGoals = 0;
+    this.PopBg.active = false;
+}
 
 
 }
